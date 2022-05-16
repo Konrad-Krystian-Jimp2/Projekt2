@@ -40,12 +40,12 @@ public class StartScreenController implements Initializable {
 
     @FXML
     private TextField FromBoundery;
-    private int fromBoundery;
+    private Double fromBoundery;
     private boolean FromBounderyWrong;
 
     @FXML
     private TextField ToBoundery;
-    private int toBoundery;
+    private Double toBoundery;
     private boolean ToBounderyWrong;
 
     @FXML
@@ -202,44 +202,55 @@ public class StartScreenController implements Initializable {
 
     public void onClickButtonStart(ActionEvent event){
         if (ifGenerate.isSelected()){
-            if(FileNameGen.getLength()>0 && FileNameGen.getText().matches("[A-Za-z0-9]+")){
+            if(FileNameGen.getLength()>0 ? FileNameGen.getText().matches("[A-Za-z0-9]+") : false){
                 fileNameGen = FileNameGen.getText();
             }
             else {
                 setToWrongView(FileNameGen);
                 FileNameGenWrong = true;
             }
-            if(RowNum.getLength() > 0 && RowNum.getText().matches("[0-9]+")){
+            if(RowNum.getLength() > 0 && RowNum.getText().matches("[0-9]+") ) {
                     rowNum = Integer.parseInt(RowNum.getText());
                 } else {
                     setToWrongView(RowNum);
                     RowNumWrong = true;
                 }
 
+
             if(ColNum.getLength() > 0 && ColNum.getText().matches("[0-9]+")){
-                colNum = Integer.parseInt(ColNum.getText());
+                    colNum = Integer.parseInt(ColNum.getText());
             } else {
                 setToWrongView(ColNum);
                 ColNumWrong = true;
             }
 
             if(FromBoundery.getLength() > 0 && FromBoundery.getText().matches("[0-9]+")){
-                fromBoundery = Integer.parseInt(FromBoundery.getText());
+                fromBoundery = Double.parseDouble(FromBoundery.getText());
             } else {
                 setToWrongView(FromBoundery);
                 FromBounderyWrong = true;
             }
 
             if(ToBoundery.getLength() > 0 && ToBoundery.getText().matches("[0-9]+")){
-                toBoundery = Integer.parseInt(ToBoundery.getText());
+                toBoundery = Double.parseDouble(ToBoundery.getText());
             } else {
                 setToWrongView(ToBoundery);
                 ToBounderyWrong = true;
             }
 
-            if(toBoundery < fromBoundery && !ToBounderyWrong && !FromBounderyWrong){
-                setToWrongView(ToBoundery);
-                ToBounderyWrong = true;
+            if(!ToBounderyWrong && !FromBounderyWrong && ToBoundery.getLength() > 0 && FromBoundery.getLength() > 0){
+                if(toBoundery < fromBoundery) {
+                    setToWrongView(ToBoundery);
+                    ToBounderyWrong = true;
+                }
+                if(toBoundery < 0){
+                    setToWrongView(ToBoundery);
+                    ToBounderyWrong = true;
+                }
+                if(fromBoundery < 0){
+                    setToWrongView(FromBoundery);
+                    ToBounderyWrong = true;
+                }
             }
 
             if(!FileNameGenWrong && !RowNumWrong && !ColNumWrong && !FromBounderyWrong && !ToBounderyWrong){
@@ -273,4 +284,6 @@ public class StartScreenController implements Initializable {
     }
 
     //TODO: Miejsce na komunikaty, albo obok wprowadznych danych małe TextField'y
+    //TODO: Znaczki typu (?) koło rubryk, żeby można było podejrzeć co trzeba wpisać
+    //TODO: Jakiś klikalny HELP, większy (?) albo coś w ten deseń
 }

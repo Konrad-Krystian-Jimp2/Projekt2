@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 
+
 public class Grafexe extends Application {
 
     @Override
@@ -23,6 +24,7 @@ public class Grafexe extends Application {
 
 
     public static void main(String[] args) {
+
         launch();
 
 
