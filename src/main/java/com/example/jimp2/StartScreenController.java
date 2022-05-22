@@ -18,6 +18,11 @@ public class StartScreenController implements Initializable {
     @FXML
     private CheckBox ifBFS;
     private boolean BFS;
+    public static boolean ebfs;
+    public static boolean returnbfs()
+    {
+        return ebfs;
+    }
 
     @FXML
     private Button StartButton;
@@ -130,16 +135,13 @@ public class StartScreenController implements Initializable {
     public void setIfBFS(ActionEvent event) {
         if(ifBFS.isSelected()){
             BFS = true;
+            ebfs=BFS;
         }
         else {
             BFS = false;
+            ebfs=BFS;
         }
     }
-
-
-
-
-
 
 
     public void clickFiledFileNameGenWhenWrong(){

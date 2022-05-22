@@ -72,15 +72,15 @@ public class GraphGenerator {
                 {
                     container.addEgde(i, i+colNum, getRandomCost());
                 }
-                if(x>=2 && x<3)//obie ścieżki
+                if((x>=2 && x<3)||StartScreenController.returnbfs())//obie ścieżki
                 {
                     container.addEgde(i, i+1, getRandomCost());
                     container.addEgde(i, i+colNum, getRandomCost());
                 }
             }
-            if(i%colNum==0 && i<RowTimesCol && x>=0 && x<1.5)//prawa krawędź
+            if((i%colNum==0 && i<RowTimesCol && x>=0 && x<1.5)||StartScreenController.returnbfs())//prawa krawędź
                 container.addEgde(i, i+colNum, getRandomCost());
-            if(i>RowTimesCol-colNum && i<RowTimesCol && x>=0 && x<1.5)//dolna krawędź
+            if((i>RowTimesCol-colNum && i<RowTimesCol && x>=0 && x<1.5)||StartScreenController.returnbfs())//dolna krawędź
                 container.addEgde(i, i+1, getRandomCost());
 
             /*if((i) <= colNum) {
