@@ -51,5 +51,10 @@
          </font>
       </Label>
       <CheckBox fx:id="ifBFS" layoutX="154.0" layoutY="437.0" mnemonicParsing="false" onAction="#setIfBFS" />
+      <Slider fx:id="HowMuchConnections" blockIncrement="1.0" layoutX="313.0" layoutY="196.0" minorTickCount="1" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="50.0" />
+      <Label layoutX="302.0" layoutY="173.0" prefHeight="17.0" prefWidth="162.0" text="ilość generowanych połączeń" />
+      <CheckBox fx:id="IfConst" layoutX="306.0" layoutY="137.0" mnemonicParsing="false" onAction="#setIfConst" text="wszystkie połączenia" />
+      <Label fx:id="HowMuch" layoutX="481.0" layoutY="195.0" text="Label" />
+      <CheckBox fx:id="IfSave" layoutX="34.0" layoutY="303.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="94.0" text="zapisz plik" />
    </children>
 </AnchorPane>

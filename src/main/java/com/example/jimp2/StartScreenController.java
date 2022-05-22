@@ -1,14 +1,31 @@
 package com.example.jimp2;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextField;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
 
+
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.util.Objects;
 import java.util.ResourceBundle;
+
+//TODO: jeżeli jest już plik o podanej nazwie to podświetlić na zółto if(File.exist())...
+//TODO:     lub wprowadzanie pliku z file managera
+//TODO: Miejsce na komunikaty, albo obok wprowadznych danych małe TextField'y
+//TODO: Znaczki typu "(?)" koło rubryk, żeby można było podejrzeć co trzeba wpisać
+//TODO: Jakiś klikalny HELP, większy "(?)" albo coś w ten deseń
 
 public class StartScreenController implements Initializable {
     @FXML
@@ -20,11 +37,22 @@ public class StartScreenController implements Initializable {
     private boolean BFS;
 
     @FXML
+    private CheckBox IfConst;
+
+    @FXML
+    private Slider HowMuchConnections;
+    public double howMuchConnections;
+
+    @FXML
+    private Label HowMuch;
+
+
+    @FXML
     private Button StartButton;
 
     @FXML
     private TextField FileNameGen;
-    private String fileNameGen;
+    public String fileNameGen;
     private boolean FileNameGenWrong;
 
     @FXML
@@ -53,7 +81,8 @@ public class StartScreenController implements Initializable {
     private String fileNameRead;
     private boolean FileNameReadWrong;
 
-
+    @FXML
+    private CheckBox IfSave;
 
 
     @Override
@@ -71,8 +100,23 @@ public class StartScreenController implements Initializable {
         FromBoundery.setEditable(false);
         FileNameRead.setStyle("-fx-background-color: #fff;");
         FileNameRead.setEditable(false);
+        IfConst.setDisable(true);
+        IfSave.setDisable(true);
+
+        HowMuchConnections.valueProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
+
+                howMuchConnections = HowMuchConnections.getValue();
+                HowMuch.setText(Double.toString(howMuchConnections)+"%");
+            }
+        });
+        HowMuchConnections.setValue(50);
+        HowMuchConnections.setDisable(true);
+        HowMuch.setText("");
 
     }
+
 
     public void setIfGenerate(ActionEvent event) {
         if(ifGenerate.isSelected()){
@@ -88,9 +132,17 @@ public class StartScreenController implements Initializable {
             ToBoundery.setStyle("-fx-background-insets-color: #fff;");
             FromBoundery.setEditable(true);
             FromBoundery.setStyle("-fx-background-insets-color: #fff;");
+            IfConst.setDisable(false);
+            IfSave.setDisable(false);
+            HowMuchConnections.setDisable(false);
+            HowMuchConnections.setValue(50);
+            howMuchConnections = 50;
+            HowMuch.setText(Double.toString(howMuchConnections)+"%");
         }
         else {
             ifRead.setDisable(false);
+            IfSave.setDisable(true);
+            IfSave.setSelected(false);
 
             FileNameGen.setEditable(false);
             FileNameGen.setStyle("-fx-background-color: #fff;");
@@ -107,11 +159,18 @@ public class StartScreenController implements Initializable {
             FromBoundery.setEditable(false);
             FromBoundery.setStyle("-fx-background-color: #fff;");
             FromBoundery.setText("");
+            IfConst.setDisable(true);
+            IfConst.setSelected(false);
+            HowMuchConnections.setValue(50);
+            HowMuchConnections.setDisable(true);
+            HowMuch.setText("");
+
         }
     }
     public void setIfRead(ActionEvent event) {
         if(ifRead.isSelected()){
             ifGenerate.setDisable(true);
+
 
             FileNameRead.setEditable(true);
             FileNameRead.setStyle("-fx-background-insets-color: #fff;");
@@ -126,6 +185,17 @@ public class StartScreenController implements Initializable {
             FileNameRead.setText("");
         }
     }
+    public void setIfConst(){
+        if(IfConst.isSelected()){
+            howMuchConnections = 100;
+            HowMuchConnections.setDisable(true);
+            HowMuchConnections.setValue(100);
+            HowMuch.setText(Double.toString(howMuchConnections)+"%");
+        } else{
+            HowMuchConnections.setDisable(false);
+            HowMuchConnections.setValue(50);
+        }
+    }
 
     public void setIfBFS(ActionEvent event) {
         if(ifBFS.isSelected()){
@@ -136,10 +206,9 @@ public class StartScreenController implements Initializable {
         }
     }
 
-
-
-
-
+    public double getHowMuchConnections(){
+        return howMuchConnections;
+    }
 
 
     public void clickFiledFileNameGenWhenWrong(){
@@ -185,7 +254,6 @@ public class StartScreenController implements Initializable {
     }
 
 
-
     private void returnToNotWrongView(TextField n){
         n.setStyle("-fx-text-fill: black;");
         n.setStyle("-fx-background-color: white;");
@@ -197,10 +265,7 @@ public class StartScreenController implements Initializable {
     }
 
 
-
-
-
-    public void onClickButtonStart(ActionEvent event){
+    public void onClickButtonStart(ActionEvent event) throws IOException {
         if (ifGenerate.isSelected()){
             if(FileNameGen.getLength()>0 ? FileNameGen.getText().matches("[A-Za-z0-9]+") : false){
                 fileNameGen = FileNameGen.getText();
@@ -254,10 +319,18 @@ public class StartScreenController implements Initializable {
             }
 
             if(!FileNameGenWrong && !RowNumWrong && !ColNumWrong && !FromBounderyWrong && !ToBounderyWrong){
-                System.out.println( "Generuje graf o parametrach: \n nazwapliku: " +fileNameGen +"\n Ilość wierszy: " +rowNum +"\n Ilość kolumn: " +colNum + "\n Zakres od: " + fromBoundery +" do: " + toBoundery);
+               // System.out.println( "Generuje graf o parametrach: \n nazwapliku: " +fileNameGen +"\n Ilość wierszy: " +rowNum +"\n Ilość kolumn: " +colNum + "\n Zakres od: " + fromBoundery +" do: " + toBoundery);
+               // System.out.println("% generowanych połączeń to: " + howMuchConnections/100);
+
+                GraphGenerator graphGenerator = new GraphGenerator(rowNum,colNum,fromBoundery,toBoundery,fileNameGen,howMuchConnections/100);
+                graphGenerator.graphGen();
+                if(IfSave.isSelected())
+                graphGenerator.saveToFile();
 
                 if(BFS){
-                    System.out.println("\n + BFS");
+                    BFS bfs = new BFS(graphGenerator.container, rowNum,colNum);
+                    bfs.doBFS();
+                //    System.out.println("\n + BFS");
                 }
             }
         }
@@ -271,9 +344,18 @@ public class StartScreenController implements Initializable {
             }
 
             if(!FileNameReadWrong){
-                System.out.println("Wczytuje graf o nazwie:\n "+fileNameRead);
-                if(BFS){
-                    System.out.println("\n + BFS");
+               // System.out.println("Wczytuje graf o nazwie:\n "+fileNameRead);
+                File file = new File("data/"+fileNameRead+".txt");
+                if(file.exists()) {
+                    Reader reader = new Reader(fileNameRead);
+                    reader.readFromFile();
+                    if (BFS) {
+                        BFS bfs = new BFS(reader.container, rowNum, colNum);
+                        bfs.doBFS();
+                    }
+                } else {
+                    setToWrongView(FileNameRead);
+                    FileNameReadWrong = true;
                 }
             }
         }
@@ -281,9 +363,8 @@ public class StartScreenController implements Initializable {
 
 
 
+
     }
 
-    //TODO: Miejsce na komunikaty, albo obok wprowadznych danych małe TextField'y
-    //TODO: Znaczki typu (?) koło rubryk, żeby można było podejrzeć co trzeba wpisać
-    //TODO: Jakiś klikalny HELP, większy (?) albo coś w ten deseń
+
 }
