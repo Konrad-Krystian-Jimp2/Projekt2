@@ -9,10 +9,5 @@ public class testDijkstra {
         dijkstra.initDijkstra();
         dijkstra.doDijkstra(1,3);
         dijkstra.showPathDij(1,11);
-
-
-
-
-
     }
 }

@@ -27,7 +27,7 @@ import java.util.ResourceBundle;
 //TODO: Znaczki typu "(?)" koło rubryk, żeby można było podejrzeć co trzeba wpisać
 //TODO: Jakiś klikalny HELP, większy "(?)" albo coś w ten deseń
 
-public class StartScreenController implements Initializable {
+public class StartScreenController extends Grafexe implements Initializable {
     @FXML
     private CheckBox ifGenerate;
     @FXML
@@ -116,6 +116,8 @@ public class StartScreenController implements Initializable {
         HowMuch.setText("");
 
     }
+
+
 
 
     public void setIfGenerate(ActionEvent event) {
@@ -264,6 +266,14 @@ public class StartScreenController implements Initializable {
         n.setStyle("-fx-border-color: red ; -fx-border-width: 1px ;");
     }
 
+    public int getRowNum(){
+        return rowNum;
+    }
+
+    public int getColNum(){
+        return colNum;
+    }
+
 
     public void onClickButtonStart(ActionEvent event) throws IOException {
         if (ifGenerate.isSelected()){
@@ -324,6 +334,11 @@ public class StartScreenController implements Initializable {
 
                 GraphGenerator graphGenerator = new GraphGenerator(rowNum,colNum,fromBoundery,toBoundery,fileNameGen,howMuchConnections/100);
                 graphGenerator.graphGen();
+
+                GraphViewController graphViewController = new GraphViewController();
+                graphViewController.GraphViewInit(graphGenerator.getRowNum(), graphGenerator.getColNum());
+                switchToGraphView(event);
+               // graphViewController.PrintGraph();
                 if(IfSave.isSelected())
                 graphGenerator.saveToFile();
 
@@ -349,6 +364,16 @@ public class StartScreenController implements Initializable {
                 if(file.exists()) {
                     Reader reader = new Reader(fileNameRead);
                     reader.readFromFile();
+                    rowNum = reader.getRowNum();
+                    System.out.println("dupa: "+rowNum);
+                    colNum = reader.getColNum();
+                    GraphViewController graphViewController = new GraphViewController();
+                    graphViewController.GraphViewInit(reader.getRowNum(), reader.getColNum());
+                    //graphViewController.PrintGraph();
+                    //System.out.println(reader.getRowNum() + " " + reader.getColNum());
+                    switchToGraphView(event);
+
+                  //  graphViewController.PrintGraph();
                     if (BFS) {
                         BFS bfs = new BFS(reader.container, rowNum, colNum);
                         bfs.doBFS();

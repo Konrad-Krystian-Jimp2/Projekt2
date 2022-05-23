@@ -1,44 +1,71 @@
 package com.example.jimp2;
 
-import javafx.application.Application;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.stage.Stage;
 
-import java.io.IOException;
-import java.util.Objects;
-
+import java.net.URL;
+import java.util.ResourceBundle;
 
 
-public class GraphViewController {
+public class GraphViewController extends StartScreenController implements Initializable {
 
     private int rowNum;
     private int colNum;
     private Parent root;
-    @FXML
-    private ScrollPane BackgroundGraph;
+    private Scene scene;
 
-    public GraphViewController(int rowNum, int colNum){
+
+
+    @FXML
+    private AnchorPane backgroundAll;
+
+    @FXML
+    private Label text;
+
+
+    public GraphViewController(){
+    }
+    public void GraphViewInit(int rowNum, int colNum){
+
+        System.out.println("graphInit: row: " + rowNum + " col:" + colNum);
         this.rowNum = rowNum;
         this.colNum = colNum;
+
     }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+
+            text.setText("zipa");
+
+    }
+
+
+
+
 
 
 
     public void PrintGraph(){
         Circle circle = new Circle();
-        circle.setCenterX(0);
-        circle.setCenterY(0);
-        circle.setRadius(20);
+        circle.setCenterX(100);
+        circle.setCenterY(100);
+        circle.setRadius(200);
 
         circle.setFill(Color.DARKCYAN);
         circle.setStrokeWidth(3.0);
         circle.setStroke(Color.DARKSLATEBLUE);
+
+
+       // text.setText(Integer.toString(rowNum));
     }
+
+
 }
