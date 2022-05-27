@@ -11,6 +11,17 @@ public class Reader {
 
     private String fileName;
     public Container container;
+    private double fromBoundery;
+
+    public double getFromBoundery() {
+        return fromBoundery;
+    }
+
+    public double getToBoundery() {
+        return toBoundery;
+    }
+
+    private double toBoundery;
 
     public int getRowNum() {
         return rowNum;
@@ -27,6 +38,8 @@ public class Reader {
 
     public Reader(String fileName){
         this.fileName = "data/"+fileName+".txt";
+        this.toBoundery = 0;
+        this.fromBoundery = Double.MAX_VALUE;
     }
 
     public void readFromFile(){
@@ -66,9 +79,14 @@ public class Reader {
 
                      //System.out.print( " " + Integer.parseInt( matcherInt.group().replace(" :",""))+" :");
                     // System.out.print(Double.parseDouble(matcherDouble.group()));
+                    double temp = Double.parseDouble(matcherDouble.group());
+                    container.addEgde(i,Integer.parseInt( matcherInt.group().replace(" :","")),temp);
 
-                    container.addEgde(i,Integer.parseInt( matcherInt.group().replace(" :","")),Double.parseDouble(matcherDouble.group()));
+                    if(fromBoundery > temp)
+                        fromBoundery = temp;
 
+                    if(toBoundery < temp)
+                        toBoundery = temp;
                     ifwrong++;
                     if(ifwrong > 4){  //IMPORTANT: gdy graf nie jest siatką to ten warunek będzie zły!!!, max 4 połączenia z wierzchołka
                         System.out.println("Zły format pliku!");
@@ -87,6 +105,13 @@ public class Reader {
 
             }
             reader.close();
+            if(toBoundery == 0) {
+                fromBoundery = -1;
+                toBoundery = -1;
+                System.out.println("Min val: " + fromBoundery);
+                System.out.println("Max val: " + toBoundery);
+                System.out.println("Brak połączeń, ale okej!");
+            }
         } catch (IOException e){
             System.out.println("Nie udało sie odnaleźć pliku :(");
         }

@@ -20,7 +20,7 @@ public class Dijkstra {
     private int start;
     private int finish;
     private ArrayList<Integer> visited;
-    private HashMap<Integer, Integer> path;
+    public HashMap<Integer, Integer> path;
     private HashMap<Integer,Double> cost;
     private PriorityQueue<Node> queue;
 
@@ -41,7 +41,7 @@ public class Dijkstra {
         }
     }
 
-    public void doDijkstra(int start, int finish)  {
+    public boolean doDijkstra(int start, int finish)  {
         int last =start;
         visited.add(start);
         cost.put(start,0.0);
@@ -61,15 +61,16 @@ public class Dijkstra {
                     if((Integer) i == finish) {
                         System.out.println(path.keySet());
                         System.out.println(path.values());
-                        return;
+                        return true;
                     }
                 }
             }
         }
         if(last != rowNum*colNum){
             System.out.println("Nie udało się znaleźć drogi :(");
-            return;
+            return false;
         }
+        return true;
     }
 
     public void showPathDij(int from, int to) {

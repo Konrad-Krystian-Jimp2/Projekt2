@@ -22,7 +22,7 @@ public class BFS {
         cost = new HashMap<Integer,Integer>();
     }
 
-    public void doBFS(){
+    public boolean doBFS(){
         int start = 1;
         int count = 1;
         visited.add(start);
@@ -42,8 +42,10 @@ public class BFS {
         }
         if(count == rowNum*colNum){
             System.out.println("Spójny :)");
+            return true;
         } else {
             System.out.println("Nie spójny :(");
+            return false;
         }
     }
 

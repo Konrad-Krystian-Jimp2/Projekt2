@@ -3,22 +3,20 @@ package com.example.jimp2;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
-import javafx.stage.Stage;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
 //TODO: jeżeli jest już plik o podanej nazwie to podświetlić na zółto if(File.exist())...
@@ -26,6 +24,17 @@ import java.util.ResourceBundle;
 //TODO: Miejsce na komunikaty, albo obok wprowadznych danych małe TextField'y
 //TODO: Znaczki typu "(?)" koło rubryk, żeby można było podejrzeć co trzeba wpisać
 //TODO: Jakiś klikalny HELP, większy "(?)" albo coś w ten deseń
+//TODO: wielowątkowść, zeby przy generowaniu np 1000x1000 można było przerwać
+
+//TODO: jakieś fajne komunikaty po każdej operacji, ew z jakimiś znaczkami typu [X] itp obok, ew kolorami,
+// zeby na pierwszy rzut oka bylo wiadomo czy poprawnie sie wykonalo czy nie
+
+//TODO: refaktoryzacja tego pliku...
+//TODO: aktualizacja sprawozdania
+//TODO: dodanie opcji generowania grafu 1xn lub nx1, bo jest <= 2 poki co
+
+//TODO: testy jednostkowe wybranych funkcji, przydałoby się jeszcze pare bo jest mao.
+//TODO: te komunikaty zółte
 
 public class StartScreenController extends Grafexe implements Initializable {
     @FXML
@@ -45,7 +54,6 @@ public class StartScreenController extends Grafexe implements Initializable {
 
     @FXML
     private Label HowMuch;
-
 
     @FXML
     private Button StartButton;
@@ -82,13 +90,39 @@ public class StartScreenController extends Grafexe implements Initializable {
     private boolean FileNameReadWrong;
 
     @FXML
+    private ScrollPane graph;
+
+    @FXML
     private CheckBox IfSave;
+    private MouseEvent e;
+
+    @FXML
+    private Button cleanUp;
+
+    @FXML
+    private Label Weights;
+
+    @FXML
+    private CheckBox BFSresult;
+
+    @FXML
+    private Pane myPane;
+    private double size = 10;
+    private double vX;
+    private double vY;
+    private boolean ifRoadPrinted;
+    private Dijkstra dijkstra;
+    private GraphGenerator graphGenerator;
+    private Reader reader;
+
+    public StartScreenController() {
+    }
 
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
-        FileNameGen.setStyle("-fx-background-color: #fff;");
+        BFSresult.setDisable(true);        FileNameGen.setStyle("-fx-background-color: #fff;");
         FileNameGen.setEditable(false);
         RowNum.setStyle("-fx-background-color: #fff;");
         RowNum.setEditable(false);
@@ -115,9 +149,335 @@ public class StartScreenController extends Grafexe implements Initializable {
         HowMuchConnections.setDisable(true);
         HowMuch.setText("");
 
+
+    }
+    EventHandler<MouseEvent> handler = this::handleEvent;
+
+    public double getX(int node){
+        int colN = node%(colNum);
+        if(colN == 0)
+            colN = colNum;
+        return ((colN-1)*4*size + 2*size);
+    }
+
+    public double getY(int node){
+        int rowN;
+        if(node%colNum == 0) {
+            rowN = node / (colNum);
+           // rowN += 1;
+        } else {
+            rowN = node /  colNum;
+            rowN++;
+        }
+        return (((rowN-1)*4*size) + 0.85*size);
+    }
+    public void addHorizontallyRectangle(int fromNode,double cost){
+        Rectangle rectangle = new Rectangle();
+        rectangle.setX(getX(fromNode));
+        rectangle.setY(getY(fromNode));
+        rectangle.setWidth(2*size);
+        rectangle.setHeight(0.3*size);
+        rectangle.setStroke(Color.BLACK);
+        rectangle.setStrokeWidth(0.05*size);
+        rectangle.setFill(getColor(cost));
+        myPane.getChildren().add(rectangle);
+    }
+
+    public void addVerticalRectangle(int fromNode,double cost){
+        Rectangle rectangle = new Rectangle();
+        rectangle.setX(getX(fromNode)-1.15*size);
+        rectangle.setY(getY(fromNode)+1.15*size);
+        rectangle.setWidth(0.3*size);
+        rectangle.setHeight(2*size);
+        rectangle.setStroke(Color.BLACK);
+        rectangle.setStrokeWidth(0.05*size);
+        rectangle.setFill(getColor(cost));
+        myPane.getChildren().add(rectangle);
+    }
+
+    private int getSwitch(double cost){
+        double scale = toBoundery - fromBoundery;
+        if(cost-fromBoundery < 0.1 * scale)
+            return 1;
+        if(cost-fromBoundery < 0.2 * scale)
+            return 2;
+        if(cost-fromBoundery < 0.3 * scale)
+            return 3;
+        if(cost-fromBoundery < 0.4 * scale)
+            return 4;
+        if(cost-fromBoundery < 0.5 * scale)
+            return 5;
+        if(cost-fromBoundery < 0.6 * scale)
+            return 6;
+        if(cost-fromBoundery < 0.7 * scale)
+            return 7;
+        if(cost-fromBoundery < 0.8 * scale)
+            return 8;
+        if(cost-fromBoundery < 0.9 * scale)
+            return 9;
+        return 10;
+    }
+
+    public Color getColor(double cost){
+        return switch (getSwitch(cost)) {
+            case 1 -> Color.BLUE;
+            case 2 -> Color.CORNFLOWERBLUE;
+            case 3 -> Color.DARKTURQUOISE;
+            case 4 -> Color.MEDIUMAQUAMARINE;
+            case 5 -> Color.LIME;
+            case 6 -> Color.GREENYELLOW;
+            case 7 -> Color.GOLD;
+            case 8 -> Color.DARKORANGE;
+            case 9 -> Color.INDIANRED;
+            case 10 -> Color.CRIMSON;
+            default -> Color.BLACK;
+        };
+    }
+
+    public void cleanUp(){
+        if(!myPane.getChildren().isEmpty()) {
+            ifRoadPrinted = false;
+            unselectNodes();
+            myPane.getChildren().removeAll();
+            myPane.getChildren().clear();
+            setToDefaultView();
+        }
+    }
+
+    //getAlligment ??
+    public void printGraph(Container container) {
+
+        int i =0;
+        for (int l = 1; l <= rowNum; l++) {
+            for (int k = 1; k <= colNum; k++) {
+                i++;
+               Circle circle = new Circle(vX, vY, size);
+               circle.setStrokeWidth(0.05*size);
+               circle.setStroke(Color.BLACK);
+               circle.setFill(Color.LIGHTSLATEGRAY);
+                myPane.getChildren().add(circle);
+                vX += 4 * size;
+
+                if (container.Graph.get(i).containsKey(i + 1))
+                    addHorizontallyRectangle(i, (Double) container.Graph.get(i).get(i + 1));
+                if(container.Graph.get(i).containsKey(i+colNum)) {
+                    addVerticalRectangle(i, (Double) container.Graph.get(i).get(i + colNum));
+//                    if(i==4){
+//                        System.out.println("i: "+i +" i+colNum: "+ i+" "+colNum + " getget: "+ container.Graph.get(i).get(i + colNum));
+//                    }
+                }
+            }
+            vX = size;
+            vY += 4 * size;
+        }
+
+        myPane.addEventHandler(MouseEvent.MOUSE_CLICKED, handler);
+    }
+
+    private void setToDefaultView(){
+         vX=size;
+         vY=size;
     }
 
 
+
+    private boolean isBetween(double number, double from, double to ){
+        if(number > from && number < to)
+            return true;
+        else
+            return false;
+    }
+
+    public int whichNmbNodeChosen(MouseEvent e) {
+        String target = e.getTarget().getClass().getSimpleName();
+        if(!target.equals("Circle")){
+            System.out.println("Nie koło");
+            return -1;
+        }
+
+        double x = e.getX();
+        double y = e.getY();
+
+        int rowN=1;
+        int colN=1;
+
+        int i=1;
+        while(!isBetween(x,(i-1)*4*size,((i-1)*4*size + 2*size))) {
+            colN++;
+            i++;
+        }
+
+        i=1;
+        while(!isBetween(y,(i-1)*4*size,((i-1)*4*size + 2*size))) {
+            rowN++;
+            i++;
+        }
+
+        int numberOfChosenNode = colN + (rowN-1)*colNum;
+//        System.out.println("Wybrano koło col nr: "+colN +" row nr: "+ rowN );
+//        System.out.println("num wierzchołka: " + numberOfChosenNode);
+//        System.out.println( getX(numberOfChosenNode) );
+//        System.out.println( getY(numberOfChosenNode) );
+        return numberOfChosenNode;
+//        System.out.println(" Target=" + target + ", location(" + x + ", " + y + ")");
+    }
+
+    private int firstNode;
+    private int secondNode;
+    private Circle circleFirst;
+    private Circle circleSecond;
+    private boolean ifFirstSelected = false;
+    private boolean ifSecondSelected = false;
+    private Circle circleRoad;
+
+    public void unselectNodes(){
+        if(myPane.getChildren().contains(circleFirst)) {
+            myPane.getChildren().remove(circleFirst);
+            ifFirstSelected = false;
+            firstNode = 0;
+        }
+        if(myPane.getChildren().contains(circleSecond)) {
+            myPane.getChildren().remove(circleSecond);
+            ifSecondSelected = false;
+            secondNode = 0;
+        }
+    }
+
+    private void switchToSelectedNodeFirst(int node){
+        System.out.println("Zaznaczone pierwsze");
+            circleFirst = new Circle();
+            circleFirst.setFill(Color.CYAN);
+            circleFirst.setRadius(size);
+            circleFirst.setCenterX(getX(node)-size);
+            circleFirst.setCenterY(getY(node)+0.15*size);
+            myPane.getChildren().add(circleFirst);
+
+    }
+
+    private void switchToSelectedNodeSecond(int node){
+        System.out.println("Zaznaczone drugie");
+        circleSecond = new Circle();
+        circleSecond.setFill(Color.ROYALBLUE);
+        circleSecond.setRadius(size);
+        circleSecond.setCenterX(getX(node)-size);
+        circleSecond.setCenterY(getY(node)+0.15*size);
+        myPane.getChildren().add(circleSecond);
+    }
+
+    private void handleEvent(MouseEvent e) {
+        int node = whichNmbNodeChosen(e);
+        if(node != -1) {
+            if (!ifFirstSelected) {
+                ifFirstSelected = true;
+                firstNode = node;
+                switchToSelectedNodeFirst(node);
+                return;
+            }
+            if (!ifSecondSelected && ifFirstSelected && node != firstNode) {
+                ifSecondSelected = true;
+                secondNode = node;
+                switchToSelectedNodeSecond(node);
+
+                if(ifRead.isSelected()) {
+                    dijkstra = new Dijkstra(reader.container, rowNum, colNum);
+                    dijkstra.initDijkstra();
+                    if(firstNode < secondNode) {
+                        if (dijkstra.doDijkstra(firstNode, secondNode)) {
+                            dijkstra.showPathDij(firstNode, secondNode);
+                            printRoad(firstNode, secondNode);
+                            System.out.println(dijkstra.doDijkstra(firstNode,secondNode));
+                        }
+                    } else {
+                        if(dijkstra.doDijkstra(secondNode, firstNode)) {
+                            dijkstra.showPathDij(secondNode, firstNode);
+                            printRoad(secondNode, firstNode);
+                        }
+
+                    }
+                }
+                if(ifGenerate.isSelected()){
+                    dijkstra = new Dijkstra(graphGenerator.container, rowNum, colNum);
+                    dijkstra.initDijkstra();
+                    if(firstNode < secondNode) {
+                        if(dijkstra.doDijkstra(firstNode, secondNode)) {
+                            dijkstra.showPathDij(firstNode, secondNode);
+                            printRoad(firstNode, secondNode);
+                        }
+                    } else {
+                        if(dijkstra.doDijkstra(secondNode, firstNode)) {
+                            dijkstra.showPathDij(secondNode, firstNode);
+                            printRoad(secondNode, firstNode);
+                        }
+                    }
+                }
+                return;
+            }
+        }
+    }
+
+    public void printRoad(int firstNode, int secondNode){
+        if(!ifRoadPrinted){
+            ifRoadPrinted = true;
+            int temp = secondNode;
+//            while (firstNode != secondNode) {
+//                System.out.println(to + " --> " + path.get(to) + " with total cost: " + cost.get(to));
+//                to = path.get(to);
+
+//                int i = dijkstra.path.size();
+//            System.out.println(getX(dijkstra.path.get(secondNode))-size);
+                while(firstNode != secondNode){
+                    Circle circleRoad = new Circle();
+                    circleRoad.setCenterX(getX(dijkstra.path.get(secondNode))-size);
+                    circleRoad.setCenterY(getY(dijkstra.path.get(secondNode))+0.15*size);
+                    circleRoad.setFill(Color.BLACK);
+                    circleRoad.setRadius(size);
+                    secondNode = dijkstra.path.get(secondNode);
+                    myPane.getChildren().add(circleRoad);
+                }
+            Circle circleRoad = new Circle();
+            circleRoad.setCenterX(getX(temp)-size);
+            circleRoad.setCenterY(getY(temp)+0.15*size);
+            circleRoad.setFill(Color.BLACK);
+            circleRoad.setRadius(size);
+            myPane.getChildren().add(circleRoad);
+        }
+    }
+
+    public void redrawActualGraph(){
+        if(ifGenerate.isSelected() && !FileNameGenWrong && !RowNumWrong && !ColNumWrong && !FromBounderyWrong && !ToBounderyWrong){
+            cleanUp();
+            printGraph(graphGenerator.container);
+        }
+        if(ifRead.isSelected() && !FileNameReadWrong){
+            cleanUp();
+            printGraph(reader.container);
+        }
+    }
+
+    private void setSize(){
+        double colCalculateSize;
+        double rowCalculateSize;
+
+        double width = myPane.getWidth();
+        double height = myPane.getHeight();
+
+        System.out.println(myPane.getWidth());
+        System.out.println(myPane.getHeight());
+        colCalculateSize = width/(2*(colNum + colNum-1));
+        rowCalculateSize = height/(2*(rowNum + rowNum-1));
+
+        if(colCalculateSize > rowCalculateSize)
+            size = rowCalculateSize;
+        else
+            size = colCalculateSize;
+
+        System.out.println("size: "+size);
+        if(size > 20){
+            size = 20;
+        }
+        System.out.println("size: "+size);
+
+    }
 
 
     public void setIfGenerate(ActionEvent event) {
@@ -145,7 +505,6 @@ public class StartScreenController extends Grafexe implements Initializable {
             ifRead.setDisable(false);
             IfSave.setDisable(true);
             IfSave.setSelected(false);
-
             FileNameGen.setEditable(false);
             FileNameGen.setStyle("-fx-background-color: #fff;");
             FileNameGen.setText("");
@@ -172,8 +531,6 @@ public class StartScreenController extends Grafexe implements Initializable {
     public void setIfRead(ActionEvent event) {
         if(ifRead.isSelected()){
             ifGenerate.setDisable(true);
-
-
             FileNameRead.setEditable(true);
             FileNameRead.setStyle("-fx-background-insets-color: #fff;");
 
@@ -181,7 +538,6 @@ public class StartScreenController extends Grafexe implements Initializable {
         }
         else {
             ifGenerate.setDisable(false);
-
             FileNameRead.setEditable(false);
             FileNameRead.setStyle("-fx-background-color: #fff;");
             FileNameRead.setText("");
@@ -202,10 +558,17 @@ public class StartScreenController extends Grafexe implements Initializable {
     public void setIfBFS(ActionEvent event) {
         if(ifBFS.isSelected()){
             BFS = true;
+            BFSresult.setDisable(false);
         }
         else {
             BFS = false;
+            BFSresult.setSelected(false);
+            BFSresult.setDisable(true);
         }
+    }
+
+    private double roundTo3DecimalPlace(double value) {
+        return Math.round(value * 1000.0) / 1000.0;
     }
 
     public double getHowMuchConnections(){
@@ -274,8 +637,8 @@ public class StartScreenController extends Grafexe implements Initializable {
         return colNum;
     }
 
-
     public void onClickButtonStart(ActionEvent event) throws IOException {
+        unselectNodes();
         if (ifGenerate.isSelected()){
             if(FileNameGen.getLength()>0 ? FileNameGen.getText().matches("[A-Za-z0-9]+") : false){
                 fileNameGen = FileNameGen.getText();
@@ -290,11 +653,18 @@ public class StartScreenController extends Grafexe implements Initializable {
                     setToWrongView(RowNum);
                     RowNumWrong = true;
                 }
-
+            if(rowNum == 1){
+                setToWrongView(RowNum);
+                RowNumWrong = true;
+            }
 
             if(ColNum.getLength() > 0 && ColNum.getText().matches("[0-9]+")){
                     colNum = Integer.parseInt(ColNum.getText());
             } else {
+                setToWrongView(ColNum);
+                ColNumWrong = true;
+            }
+            if(colNum == 1){
                 setToWrongView(ColNum);
                 ColNumWrong = true;
             }
@@ -332,19 +702,38 @@ public class StartScreenController extends Grafexe implements Initializable {
                // System.out.println( "Generuje graf o parametrach: \n nazwapliku: " +fileNameGen +"\n Ilość wierszy: " +rowNum +"\n Ilość kolumn: " +colNum + "\n Zakres od: " + fromBoundery +" do: " + toBoundery);
                // System.out.println("% generowanych połączeń to: " + howMuchConnections/100);
 
-                GraphGenerator graphGenerator = new GraphGenerator(rowNum,colNum,fromBoundery,toBoundery,fileNameGen,howMuchConnections/100);
+                graphGenerator = new GraphGenerator(rowNum,colNum,fromBoundery,toBoundery,fileNameGen,howMuchConnections/100);
                 graphGenerator.graphGen();
+                rowNum = graphGenerator.getRowNum();
+                colNum = graphGenerator.getColNum();
+                setSize();
+                fromBoundery = graphGenerator.getFromBound();
+                toBoundery = graphGenerator.getToBound();
 
-                GraphViewController graphViewController = new GraphViewController();
-                graphViewController.GraphViewInit(graphGenerator.getRowNum(), graphGenerator.getColNum());
-                switchToGraphView(event);
-               // graphViewController.PrintGraph();
+                if(!myPane.getChildren().isEmpty()) {
+                    myPane.getChildren().removeAll();
+                    myPane.getChildren().clear();
+                    setToDefaultView();
+                }
+                if(myPane.getChildren().isEmpty()) {
+                    setToDefaultView();
+//                    graphGenerator.container.showAll();
+                    Weights.setText("<"+roundTo3DecimalPlace(fromBoundery)+","+roundTo3DecimalPlace(toBoundery)+">");
+                    printGraph(graphGenerator.container);
+                }
+
+
                 if(IfSave.isSelected())
                 graphGenerator.saveToFile();
 
                 if(BFS){
                     BFS bfs = new BFS(graphGenerator.container, rowNum,colNum);
-                    bfs.doBFS();
+                    boolean BFSresGen = bfs.doBFS();
+                    if(BFSresGen){
+                        BFSresult.setSelected(true);
+                    } else {
+                        BFSresult.setSelected(false);
+                    }
                 //    System.out.println("\n + BFS");
                 }
             }
@@ -362,21 +751,37 @@ public class StartScreenController extends Grafexe implements Initializable {
                // System.out.println("Wczytuje graf o nazwie:\n "+fileNameRead);
                 File file = new File("data/"+fileNameRead+".txt");
                 if(file.exists()) {
-                    Reader reader = new Reader(fileNameRead);
+                    reader = new Reader(fileNameRead);
                     reader.readFromFile();
                     rowNum = reader.getRowNum();
-                    System.out.println("dupa: "+rowNum);
                     colNum = reader.getColNum();
-                    GraphViewController graphViewController = new GraphViewController();
-                    graphViewController.GraphViewInit(reader.getRowNum(), reader.getColNum());
-                    //graphViewController.PrintGraph();
-                    //System.out.println(reader.getRowNum() + " " + reader.getColNum());
-                    switchToGraphView(event);
+                    setSize();
+                    fromBoundery = reader.getFromBoundery();
+                    toBoundery = reader.getToBoundery();
 
-                  //  graphViewController.PrintGraph();
+                    if(!myPane.getChildren().isEmpty()) {
+                        myPane.getChildren().removeAll();
+                        myPane.getChildren().clear();
+                        setToDefaultView();
+                    }
+                    if(myPane.getChildren().isEmpty()) {
+                        setToDefaultView();
+                        if(fromBoundery != -1 && toBoundery != -1)
+                            Weights.setText("<"+roundTo3DecimalPlace(fromBoundery)+","+roundTo3DecimalPlace(toBoundery)+">");
+                        else
+                            Weights.setText("Brak");
+//                        reader.container.showAll();
+                        printGraph(reader.container);
+                    }
+                    //  graphViewController.PrintGraph();
                     if (BFS) {
                         BFS bfs = new BFS(reader.container, rowNum, colNum);
-                        bfs.doBFS();
+                        boolean BFSresRead = bfs.doBFS();
+                        if(BFSresRead){
+                            BFSresult.setSelected(true);
+                        } else {
+                            BFSresult.setSelected(false);
+                        }
                     }
                 } else {
                     setToWrongView(FileNameRead);
@@ -384,12 +789,5 @@ public class StartScreenController extends Grafexe implements Initializable {
                 }
             }
         }
-
-
-
-
-
     }
-
-
 }

@@ -7,7 +7,7 @@ public class testDijkstra {
 
         Dijkstra dijkstra = new Dijkstra(reader.container, reader.getRowNum(), reader.getColNum());
         dijkstra.initDijkstra();
-        dijkstra.doDijkstra(1,3);
-        dijkstra.showPathDij(1,11);
+        dijkstra.doDijkstra(1,9);
+        dijkstra.showPathDij(1,9);
     }
 }
