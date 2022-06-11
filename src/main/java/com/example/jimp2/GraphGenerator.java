@@ -1,18 +1,23 @@
 package com.example.jimp2;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Random;
 
 public class GraphGenerator {
 
+    public Container container;
     private int rowNum;
     private int colNum;
     private double fromBound;
     private double toBound;
     private String fileName;
+    private double howMuchCon;
     private boolean Debug;
+    StartScreenController st = new StartScreenController();
+    // Ważna informacja, wierzchołki liczone są od 1;
 
-
-    private Container container = new Container();
 
     public int getRowNum() {
         return rowNum;
@@ -33,15 +38,20 @@ public class GraphGenerator {
     public String getFileName() {
         return fileName;
     }
+    public boolean udane;
 
-    public GraphGenerator(int rowNum, int colNum, double fromBound, double toBound, String fileName){
-        this.fileName = fileName;
+    public GraphGenerator(int rowNum, int colNum, double fromBound, double toBound, String fileName, double howMuchCon){
+        this.container = new Container();
+
+        this.fileName = "data/"+fileName+".txt";
         this.fromBound = fromBound;
         this.toBound = toBound;
         this.colNum = colNum;
         this.rowNum = rowNum;
+        this.howMuchCon = howMuchCon;
 
-        this.Debug = false  ;
+
+        this.Debug = false; //można zmienić na true w razie potrzeby ;)
     }
 
     public double getRandomCost(){
@@ -49,113 +59,138 @@ public class GraphGenerator {
         return random.nextDouble(fromBound, toBound);
     }
 
-    private double getRandomStatement(){
+    private boolean getRandomStatement(){
         Random random = new Random();
-        return random.nextDouble(0, 3);
+        return random.nextDouble() >= 1-howMuchCon  ? true : false;
     }
 
     public void graphGen(){
         int RowTimesCol = rowNum * colNum;
-        Container container = new Container();
+
         container.initNodes(RowTimesCol);
 
         for(int i = 1; i<= RowTimesCol; i++){
-            double x=getRandomStatement();//losowanie parametru do wyboru kierunku i ilości ścieżek
 
-            if(i<RowTimesCol-colNum && i%colNum!=0)//węzeł nie znajdujący się na dolnej lub prawej krawędzi
-            {
-                if(x>=1 && x<1.5)//ścieżka w prawo z aktualnego węzła
-                {
-                    container.addEgde(i, i+1, getRandomCost());
-                }
-                if(x>=1.5 && x<2)//ścieżka w dół z aktualnego węzła
-                {
-                    container.addEgde(i, i+colNum, getRandomCost());
-                }
-                if((x>=2 && x<3)||StartScreenController.returnbfs())//obie ścieżki
-                {
-                    container.addEgde(i, i+1, getRandomCost());
-                    container.addEgde(i, i+colNum, getRandomCost());
-                }
-            }
-            if((i%colNum==0 && i<RowTimesCol && x>=0 && x<1.5)||StartScreenController.returnbfs())//prawa krawędź
-                container.addEgde(i, i+colNum, getRandomCost());
-            if((i>RowTimesCol-colNum && i<RowTimesCol && x>=0 && x<1.5)||StartScreenController.returnbfs())//dolna krawędź
-                container.addEgde(i, i+1, getRandomCost());
 
-            /*if((i) <= colNum) {
+            if((i) <= colNum) {
                 if( i == 1){
                     if(Debug)   System.out.println(i+ " lewy róg góry siatki");
+                    //if( getRandomStatement...
+                    if(getRandomStatement())
+                        container.addEgde(i, i + 1, getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, i + colNum, getRandomCost());
 
-                    container.addEgde(i,i + 1,getRandomCost());
-                    container.addEgde(i,i + colNum,getRandomCost());
                 } else if (colNum != 1 ? (i) % (colNum) == 0 : false ) {
                     if(Debug)   System.out.println(i+" prawy róg góry siatki");
+                    if(getRandomStatement())
+                        container.addEgde(i, i - 1, getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, i + colNum, getRandomCost());
 
-                    //container.addEgde(i,i - 1,getRandomCost());
-                    container.addEgde(i,i + colNum,getRandomCost());
                 } else{
                     if(Debug)   System.out.println(i+" góra siatki");
+                    if(getRandomStatement())
+                        container.addEgde(i, i + 1, getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, i - 1, getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, i + colNum, getRandomCost());
 
-                    container.addEgde(i,i + 1,getRandomCost());
-                    container.addEgde(i,i - 1,getRandomCost());
-                    container.addEgde(i,i + colNum,getRandomCost());
                 }
             }
 
             if((i > (RowTimesCol - colNum))){ // doł siatki
                 if((i-1)%(colNum) == 0){
                     if(Debug)   System.out.println(i+"lewy róg doł siatki");
+                    if(getRandomStatement())
+                        container.addEgde(i, i + 1, getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, i - colNum, getRandomCost());
 
-                    container.addEgde(i,i+  1,getRandomCost());
-                    container.addEgde(i,i - colNum,getRandomCost());
                 }else if ( (i)%(colNum) == 0 ){
                     if(Debug)   System.out.println(i+" prawy róg doł siatki");
+                    if(getRandomStatement())
+                        container.addEgde(i, i - 1, getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, i - colNum, getRandomCost());
 
-                    container.addEgde(i,i - 1,getRandomCost());
-                    container.addEgde(i,i - colNum,getRandomCost());
                 } else {
                     if(Debug)   System.out.println(i+ " dół siatki");
+                    if(getRandomStatement())
+                        container.addEgde(i, i - 1, getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, i + 1, getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, i - colNum, getRandomCost());
 
-                    container.addEgde(i,i - 1,getRandomCost());
-                    container.addEgde(i,i + 1,getRandomCost());
-                    container.addEgde(i,i - colNum,getRandomCost());
                 }
             }
 
             if(i > colNum && i <= (RowTimesCol-colNum) ){
                 if( (i-1)%(colNum) == 0 ) {
                     if(Debug)   System.out.println(i + "lewy bok siatki");
+                    if(getRandomStatement())
+                        container.addEgde(i, (i - colNum), getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, (i + colNum), getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, (i + 1), getRandomCost());
 
-                    container.addEgde(i,(i - colNum),getRandomCost());
-                    container.addEgde(i,(i + colNum),getRandomCost());
-                    container.addEgde(i,(i + 1),getRandomCost());
                 }else if ( (i)%(colNum) == 0 ){
                     if(Debug)    System.out.println(i+"prawy bok siatki");
+                    if(getRandomStatement())
+                        container.addEgde(i, (i - colNum), getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, (i + colNum), getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, (i - 1), getRandomCost());
 
-                    container.addEgde(i,(i - colNum),getRandomCost());
-                    container.addEgde(i,(i + colNum),getRandomCost());
-                    container.addEgde(i,(i - 1),getRandomCost());
                 } else{
                     if(Debug)    System.out.println(i+ " wnętrze siatki");
+                    if(getRandomStatement())
+                        container.addEgde(i, (i - colNum), getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, (i + colNum), getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, (i - 1), getRandomCost());
+                    if(getRandomStatement())
+                        container.addEgde(i, (i + 1), getRandomCost());
 
-                    container.addEgde(i,(i - colNum),getRandomCost());
-                    container.addEgde(i,(i + colNum),getRandomCost());
-                    container.addEgde(i,(i - 1),getRandomCost());
-                    container.addEgde(i,(i + 1),getRandomCost());
                 }
-            }*/
+            }
         }
-        System.out.println( container.getN() );
-        //container.showAll();
+       System.out.println("liczba wierzchołków: " + container.getN() );
+        st.wypisz("liczba wierzchołków: " + container.getN() );
+    }
 
-        //dla row i col > 1
-//        // ew TODO: row = 1 v col = 1
-//        for(int i =0; i< RowTimesCol; i++){
-//            if(i-1 < 0 && i - colNum )
-//
-//        }
+    public void saveToFile(){
+
+        try {
+        //    File file = new File(fileName);
+        //    if(!file.exists()) {
+                PrintWriter writer = new PrintWriter(fileName, "UTF-8");
+                writer.println(rowNum + " " + colNum);
+                for (Integer i : container.Graph.keySet()) {
+                    writer.print("\t ");
+                    for (Object j : container.Graph.get(i).keySet()) {
+                        writer.print(j + " :" + container.Graph.get(i).get(j) + "  ");
+                    }
+                    writer.print("\n");
+                }
+                writer.close();
+        //    }
+            System.out.println("Udało się zapisać graf do pliku: "+fileName);
+            st.wypisz("Udało się zapisać graf do pliku: "+fileName);
+            udane=true;
+        } catch (IOException e) {
+            System.out.println("Nie udało się zapisać grafu do pliku.");
+            st.wypisz("Nie udało się zapisać grafu do pliku.");
+            udane=false;
+        }
 
 
     }
+
+
 }

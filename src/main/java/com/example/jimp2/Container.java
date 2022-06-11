@@ -5,14 +5,14 @@ import java.util.HashMap;
 
 public class Container {
 
-//    private ArrayList<HashMap> Graph;
-//    private HashMap<Integer, Double> NodeConnectWith = new HashMap<Integer, Double>(); // Int -> numer wierzchołka, Double -> koszt przejścia
+    // Ważna informacja, wierzchołki liczone są od 1;
 
-    private HashMap<Integer,HashMap> Graph;
+    public HashMap<Integer,HashMap> Graph;
     private int n; // Liczba wierzchołków
 
     public Container(){
         Graph = new HashMap<>();
+        n = 0;
     }
 
     public void initNodes(int RowTimesCol){
@@ -29,11 +29,25 @@ public class Container {
     }
 
     public void addEgde(int whichNode, int toNode, double cost){
-     //   System.out.println("Graph.get(whichNode): "+Graph.get(whichNode) + "whichNode: " + whichNode + "val of state: " );
-        if(!Graph.get(toNode).containsKey(toNode) ) {
-            Graph.get(whichNode).put(toNode, cost);
-            Graph.get(toNode).put(whichNode, cost);
-        }
+            try {
+                if (!Graph.get(toNode).containsKey(toNode)) {
+                    if (Graph.containsKey(whichNode))
+                        Graph.get(whichNode).put(toNode, cost);
+                    if (Graph.containsKey(toNode))
+                        Graph.get(toNode).put(whichNode, cost);
+                }
+            }catch (NullPointerException e){
+                System.out.println("Nie da się dodać krawędzi z ["+whichNode+"] do ["+toNode+"] o wadze: ["+cost+"]");
+                System.exit(1);
+            }
+    }
+
+    public double getCost(int whichNode, int toNode){
+        if(Graph.containsKey(whichNode))
+          if(Graph.get(whichNode).containsKey(toNode))
+            return (double) Graph.get(whichNode).get(toNode);
+
+            return -1;
     }
 
 
@@ -51,6 +65,11 @@ public class Container {
     public int getN(){
         return n;
     }
+
+    public int howManyConnectionsFromThisNode(int Node){
+        return Graph.get(Node).keySet().size();
+    }
+
 
 //    public void addConnectionToNode(Integer nodeNum, Double cost){
 //        NodeConnectWith.put(nodeNum, cost);
