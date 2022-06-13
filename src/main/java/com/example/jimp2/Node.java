@@ -1,10 +1,8 @@
 package com.example.jimp2;
 
-import java.util.Comparator;
-
 public class Node {
-    private int number;
-    private double cost;
+    private final int number;
+    private final double cost;
 
     public Node(int number, double cost) {
         this.number = number;

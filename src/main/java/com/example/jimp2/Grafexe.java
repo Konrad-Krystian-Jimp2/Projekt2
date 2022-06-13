@@ -20,7 +20,7 @@ public class Grafexe extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(Grafexe.class.getResource("StartScreenView.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 650, 560);
+        Scene scene = new Scene(fxmlLoader.load(), 1300, 720);
         stage.setTitle("Grafexe");
         stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResource("img/GrafexeLogo.png")).toString()));
         stage.setScene(scene);

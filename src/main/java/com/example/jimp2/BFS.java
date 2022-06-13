@@ -4,25 +4,25 @@ import java.util.*;
 
 public class BFS {
 
-    private Container container;
-    private int rowNum;
-    private int colNum;
-    private ArrayList<Integer> visited;
-    private HashMap<Integer,Integer> path;
-    private HashMap<Integer,Integer> cost;
-    private Queue<Integer> queue;
+    private final Container container;
+    private final int rowNum;
+    private final int colNum;
+    private final ArrayList<Integer> visited;
+    private final HashMap<Integer,Integer> path;
+    private final HashMap<Integer,Integer> cost;
+    private final Queue<Integer> queue;
 
     public BFS(Container container, int rowNum, int colNum){
         this.container = container;
         this.rowNum = rowNum;
         this.colNum = colNum;
-        queue = new LinkedList<Integer>();
-        visited = new ArrayList<Integer>();
-        path = new HashMap<Integer,Integer>();
-        cost = new HashMap<Integer,Integer>();
+        queue = new LinkedList<>();
+        visited = new ArrayList<>();
+        path = new HashMap<>();
+        cost = new HashMap<>();
     }
 
-    public void doBFS(){
+    public boolean doBFS(){
         int start = 1;
         int count = 1;
         visited.add(start);
@@ -30,20 +30,21 @@ public class BFS {
         cost.put(start,0);
         while(!queue.isEmpty()){
             int node = queue.poll();
-            for(Object i : container.Graph.get(node).keySet()){
-                if(!visited.contains(i)){
+            for(Object i : container.Graph.get(node).keySet())
+                if (!visited.contains(i)) {
                     queue.add((Integer) i);
                     visited.add((Integer) i);
-                    path.put((Integer) i,node);
-                    cost.put((Integer) i,cost.get(node)+1);
+                    path.put((Integer) i, node);
+                    cost.put((Integer) i, cost.get(node) + 1);
                     count++;
                 }
-            }
         }
         if(count == rowNum*colNum){
             System.out.println("Spójny :)");
+            return true;
         } else {
             System.out.println("Nie spójny :(");
+            return false;
         }
     }
 

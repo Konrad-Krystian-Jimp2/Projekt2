@@ -1,6 +1,5 @@
 package com.example.jimp2;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Container {
@@ -8,7 +7,7 @@ public class Container {
     // Ważna informacja, wierzchołki liczone są od 1;
 
     public HashMap<Integer,HashMap> Graph;
-    private int n; // Liczba wierzchołków
+    private int n;
 
     public Container(){
         Graph = new HashMap<>();
@@ -70,41 +69,4 @@ public class Container {
         return Graph.get(Node).keySet().size();
     }
 
-
-//    public void addConnectionToNode(Integer nodeNum, Double cost){
-//        NodeConnectWith.put(nodeNum, cost);
-//    }
-//
-//    public Double getConnectionToNode(Integer nodeNum){
-//        return NodeConnectWith.get(nodeNum);
-//    }
-//
-//    public void removeConnectionToNode(Integer nodeNum){
-//        if(n>0) {
-//            NodeConnectWith.remove(nodeNum);
-//        }
-//    }
-//
-//    public void addNode(int LineNumber){
-//        if(n == 0){
-//            Graph = new ArrayList<HashMap>();
-//        }
-//        HashMap<Integer, Double> e = new HashMap<>();
-//        Graph.add();
-//    }
-//
-//    public int getN(){
-//        return n;
-//    }
-//
-//    public void showAllNodes(){
-//        if(n > 0) {
-//            for(int j =0; j<)
-//            for (Integer i : NodeConnectWith.keySet()) {
-//                System.out.println("key: " + i + " value: " + NodeConnectWith.get(i));
-//            }
-//        } else{
-//            System.out.println("Nothing to be shown!");
-//        }
-//    }
 }
