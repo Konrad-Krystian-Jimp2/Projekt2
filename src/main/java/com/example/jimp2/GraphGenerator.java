@@ -16,7 +16,6 @@ public class GraphGenerator {
     private boolean Debug;
 
     // Ważna informacja, wierzchołki liczone są od 1;
-    // ew TODO: row = 1 v col = 1
 
 
     public int getRowNum() {

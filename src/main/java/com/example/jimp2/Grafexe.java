@@ -27,17 +27,6 @@ public class Grafexe extends Application {
         stage.show();
     }
 
-    public void switchToGraphView( ActionEvent event ) throws IOException {
-        // if(ifRead.isSelected() && !FileNameReadWrong) {
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("GraphView.fxml")));
-        Stage stage = new Stage();
-        stage = (Stage)((Node)event.getSource()).getScene().getWindow();
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
-        // }
-    }
-
 
     public static void main(String[] args) {
 
